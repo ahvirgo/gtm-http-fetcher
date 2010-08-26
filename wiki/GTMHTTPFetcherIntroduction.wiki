@@ -17,15 +17,23 @@ At its most basic, the fetcher can be used by adding GTMHTTPFetcher.h/m to your 
 {{{
   #import "GTMHTTPFetcher.h"
   
-  NSURLRequest *request = [NSURLRequest requestWithURL:myURL];
+  NSURL *url = [NSURL URLWithString:@"http://www.example.com/"];
+  NSURLRequest *request = [NSURLRequest requestWithURL:url];
   GTMHTTPFetcher* myFetcher = [GTMHTTPFetcher fetcherWithRequest:request];
   [myFetcher beginFetchWithDelegate:self
                   didFinishSelector:@selector(myFetcher:finishedWithData:error:)];
 }}}
 
-The callback should have a signature string matching
+The callback looks like
 {{{
-- (void)myFetcher:(GTMHTTPFetcher *)fetcher finishedWithData:(NSData *)retrievedData error:(NSError *)error;
+- (void)myFetcher:(GTMHTTPFetcher *)fetcher finishedWithData:(NSData *)retrievedData error:(NSError *)error {
+  if (error != nil) {
+    // failed
+    int status = [error code];
+  } else {
+    // succeeded
+  }
+}
 }}}
 
 Typically, each callback will have a selector named to indicate what was fetched, like
@@ -34,6 +42,10 @@ imageFetcher:finishedWithData:error:
 
 settingsFetcher:finishedWithData:error:
 }}}
+
+The delegate is retained until the fetch has completed or been canceled.
+
+
 
 
 *Still to document*:
