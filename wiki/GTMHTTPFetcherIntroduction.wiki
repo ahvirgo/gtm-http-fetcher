@@ -1,14 +1,25 @@
 #summary One-sentence summary of this page.
 #labels Featured
 
+<wiki:toc max_depth="3" />
+
 = Introduction =
 
 The Google Toolbox for Mac HTTP Fetcher is a set of classes to simplify http operations in Cocoa applications.
 
+== When would you use the fetcher? ==
+
+  * When you just want a result from an http operation
+  * When you want the "standard" behavior for connections, such as redirection handling
+  * When you want automatic retry on failures
+  * When you want to avoid cookie collisions with Safari and other applications
+  * When you need to set a credential for the http operation
 
 = Using the Fetcher =
 
-== Basics ==
+== Usage ==
+
+=== Fetching a Request ===
 
 Because the fetcher is implemented as a wrapper on NSURLConnection, it is asynchronous
 
@@ -24,11 +35,21 @@ At its most basic, the fetcher can be used by adding GTMHTTPFetcher.h/m to your 
                   didFinishSelector:@selector(myFetcher:finishedWithData:error:)];
 }}}
 
+Each fetcher object is good for "one shot"; no not reuse an instance for a second fetch.
+
+The fetcher may be created auto-released (as shown above with + fetcherWithRequest:) in which case it will release itself after the fetch completion callback has been invoked.  The fetcher is implicitly retained as long as a connection is pending.
+
+But if you may need to cancel the fetcher prior to completion, allocate it with initWithRequest: and have the delegate release the fetcher in the callbacks.
+
+Upload data may be optionally specified with the fetcher's `postData` and `postStream` properties.
+
 The callback looks like
 {{{
 - (void)myFetcher:(GTMHTTPFetcher *)fetcher finishedWithData:(NSData *)retrievedData error:(NSError *)error {
   if (error != nil) {
-    // failed
+    // failed; either an NSURLConnection error, or a server status value at least 300
+    //
+    // the domain string server status errors is kGTMHTTPFetcherStatusDomain
     int status = [error code];
   } else {
     // succeeded
@@ -43,16 +64,186 @@ imageFetcher:finishedWithData:error:
 settingsFetcher:finishedWithData:error:
 }}}
 
-The delegate is retained until the fetch has completed or been canceled.
+The delegate is retained by the fetcher until the fetch has completed or been canceled.
 
+=== Blocks-style Callback ===
 
+The callback may also be supplied as an Objective-C block:
+{{{
+  [myFetcher beginFetchWithCompletionHandler:^(NSData *retrievedData, NSError *error) {
+    if (error != nil) {
+      // status code or network error
+    } else {
+      // succeeded
+    }
+  }];
+}}}
 
+Other fetcher delegate methods also have block versions.
 
-*Still to document*:
-  * progress monitoring
-  * service class
-  * ETag caching
-  * cookies
-  * retry
-  * logging
-  * MIME upload streams
+=== Cookies ===
+
+There are three supported mechanisms for remembering cookies between fetches.
+
+By default, GTMHTTPFetcher uses a mutable array held statically to track cookies for all instantiated fetchers. This avoids server cookies being set by servers for the application from interfering with Safari cookie settings, and vice versa.  The fetcher cookies are lost when the application quits.
+
+To rely instead on WebKit's global NSHTTPCookieStorage, call setCookieStorageMethod: with kGTMHTTPFetcherCookieStorageMethodSystemDefault.
+
+If the fetcher is created from a GTMHTTPFetcherService object
+then the cookie storage mechanism is set to use the cookie storage in the
+service object rather than the static storage.
+
+=== Monitoring received data ===
+
+An optional received data selector can be set with `receivedDataSelector` property. The selector should have the signature
+
+{{{
+- (void)myFetcher:(GTMHTTPFetcher *)fetcher receivedData:(NSData *)dataReceivedSoFar;
+}}}
+
+The bytes received so far are `[dataReceivedSoFar length]`. This number may go down if a redirect causes the download to begin again from a new server.
+
+If supplied by the server, the anticipated total download size is available as`[[myFetcher response] expectedContentLength]` (though it may be -1 for unknown download sizes.)
+
+=== Proxies ===
+
+Proxy handling is invisible so long as the system has a valid credential in
+the keychain, which is normally true (else most NSURL-based apps would have
+difficulty.)  But when there is a proxy authetication error, the the fetcher
+will call the failedWithError: method with the NSURLChallenge in the error's
+userInfo. The error method can get the challenge info like this:
+{{{
+ NSURLAuthenticationChallenge *challenge = [[error userInfo] objectForKey:kGTMHTTPFetcherErrorChallengeKey];
+ BOOL isProxyChallenge = [[challenge protectionSpace] isProxy];
+}}}
+If a proxy error occurs, you can ask the user for the proxy username/password
+and call fetcher's setProxyCredential: to provide those for the
+next attempt to fetch.
+
+=== Automatic Retry ===
+
+The fetcher can optionally create a timer and reattempt certain kinds of
+fetch failures (status codes 408, request timeout; 503, service unavailable;
+504, gateway timeout; networking errors NSURLErrorTimedOut and
+NSURLErrorNetworkConnectionLost.)  The user may set a retry selector to
+customize the type of errors which will be retried.
+
+Retries are done in an exponential-backoff fashion (that is, after 1 second,
+2, 4, 8, and so on.)
+
+Enabling automatic retries looks like this:
+{{{
+ [myFetcher setRetryEnabled:YES];
+}}}
+With retries enabled, the success or failure callbacks are called only
+when no more retries will be attempted. Calling the fetcher's stopFetching
+method will terminate the retry timer, without the finished or failure
+selectors being invoked.
+
+Optionally, the client may set the maximum retry interval:
+{{{
+ [myFetcher setMaxRetryInterval:60.0]; // in seconds; default is 60 seconds
+                                       // for downloads, 600 for uploads
+}}}
+Also optionally, the client may provide a callback selector to determine
+if a status code or other error should be retried.
+{{{
+ [myFetcher setRetrySelector:@selector(myFetcher:willRetry:forError:)];
+}}}
+
+If set, the retry selector should have the signature:
+{{{
+  -(BOOL)fetcher:(GTMHTTPFetcher *)fetcher willRetry:(BOOL)suggestedWillRetry forError:(NSError *)error
+}}}
+and return YES to set the retry timer or NO to fail without additional
+fetch attempts.
+
+The retry method may return the `suggestedWillRetry` argument to get the
+default retry behavior.  Server status codes are present in the
+error argument, and have the domain kGTMHTTPFetcherStatusDomain. The
+user's method may look something like this:
+{{{
+-(BOOL)myFetcher:(GTMHTTPFetcher *)fetcher willRetry:(BOOL)suggestedWillRetry forError:(NSError *)error {
+
+    // perhaps examine [error domain] and [error code], or [fetcher retryCount]
+    //
+    // return YES to start the retry timer, NO to proceed to the failure
+    // callback, or suggestedWillRetry to get default behavior for the
+    // current error domain and code values.
+    return suggestedWillRetry;
+}
+}}}
+
+=== Fetching for Periodic Checks ===
+
+The fetcher object can track ETag headers from responses and
+provide an "If-None-Match" header. This allows the server to save
+bandwidth by providing a status message instead of repeated response
+data.
+
+To get this behavior, create the fetcher from an GTMHTTPFetcherService object
+and look for a fetch callback error with code 304
+(kGTMHTTPFetcherStatusNotModified) like this:
+{{{
+- (void)myFetcher:(GTMHTTPFetcher *)fetcher finishedWithData:(NSData *)data error:(NSError *)error {
+   if ([error code] == kGTMHTTPFetcherStatusNotModified) {
+     // data is empty; use the data from the previous finishedWithData: for this URL
+   } else {
+     // handle other server status code
+   }
+}
+}}}
+
+=== Uploading Multipart MIME Documents ===
+
+The library includes a class for generating multipart MIME documents. See the header for `GTMMIMEDocument` for instructions on generating an NSInputStream with the MIME data. The fetcher's `postStream` property may be used to specify the generated input stream to upload.
+
+== Fetcher Service Objects ==
+
+Fetchers that do not need shared history may be generated independently, as shown above.
+
+Alternatively, the fetcher service class provides a "memory" across a sequence of fetcher objects generated by the service.
+
+For fetch responses with Etag headers, the fetcher service remembers the response headers. Future fetcher requests to the same URL will be given an "If-none-match" header, telling the server to return a 304 Not Modified status if the response is unchanged, reducing the server load and network traffic.
+
+Optionally, the fetcher service can cache the ETagged data that was returned in the responses that contained Etag headers. If a later fetch results in a 304 status, indicating the requested resource has not changed, the fetcher will return the cached data to the client along with a 200 status, hiding the 304.
+
+The fetcher service can track cookies, allowing a specific sequence of fetchers to share a cookie jar.
+
+Fetchers can be generated by a common GTMHTTPFetcherService instance, like
+{{{
+GTMHTTPFetcherService *myFetcherService = [[GTMHTTPFetcherService alloc] init];
+GTMHTTPFetcher* myFirstFetcher = [myFetcherService fetcherWithRequest:request1];
+GTMHTTPFetcher* mySecondFetcher = [myFetcherService fetcherWithRequest:request2];
+}}}
+
+== HTTP Logging ==
+
+All traffic using GTMHTTPFetcher can be easily logged.  Call
+{{{
+  [GTMHTTPFetcher setLoggingEnabled:YES];
+}}}
+to begin generating log files.
+
+Log files are put into a folder on the desktop called `GTMHTTPDebugLogs`
+unless another directory is specified with `+setLoggingDirectory`.
+
+In the iOS simulator, the default logs location is the user's home
+directory in ~/Library/Application Support.  On the device, the
+default logs location is the application's documents directory on the device.
+
+*Tip*: Use the Finder's "Sort By Date" to find the most recent logs.
+
+Each run of an application gets a separate set of log files.  An html
+file is generated to simplify browsing the run's http transactions.
+The html file includes javascript links for inline viewing of uploaded
+and downloaded data.
+
+A symlink is created in the logs folder to simplify finding the html file
+for the latest run of the application; the symlink is called
+
+  `AppName_http_log_newest.html`
+
+For better viewing of XML logs, use Camino or Firefox rather than Safari.
+
+Projects may define `STRIP_GTM_FETCH_LOGGING` to remove logging code.
