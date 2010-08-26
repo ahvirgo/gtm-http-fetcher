@@ -1,0 +1,46 @@
+#summary One-sentence summary of this page.
+#labels Featured
+
+= Introduction =
+
+The Google Toolbox for Mac HTTP Fetcher is a set of classes to simplify http operations in Cocoa applications.
+
+
+= Using the Fetcher =
+
+== Basics ==
+
+Because the fetcher is implemented as a wrapper on NSURLConnection, it is asynchronous
+
+At its most basic, the fetcher can be used by adding GTMHTTPFetcher.h/m to your project, and fetching a URL like this:
+
+{{{
+  #import "GTMHTTPFetcher.h"
+  
+  NSURLRequest *request = [NSURLRequest requestWithURL:myURL];
+  GTMHTTPFetcher* myFetcher = [GTMHTTPFetcher fetcherWithRequest:request];
+  [myFetcher beginFetchWithDelegate:self
+                  didFinishSelector:@selector(myFetcher:finishedWithData:error:)];
+}}}
+
+The callback should have a signature string matching
+{{{
+- (void)myFetcher:(GTMHTTPFetcher *)fetcher finishedWithData:(NSData *)retrievedData error:(NSError *)error;
+}}}
+
+Typically, each callback will have a selector named to indicate what was fetched, like
+{{{
+imageFetcher:finishedWithData:error:
+
+settingsFetcher:finishedWithData:error:
+}}}
+
+
+*Still to document*:
+  * progress monitoring
+  * service class
+  * ETag caching
+  * cookies
+  * retry
+  * logging
+  * MIME upload streams
