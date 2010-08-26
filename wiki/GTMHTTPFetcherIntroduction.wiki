@@ -9,10 +9,12 @@ The Google Toolbox for Mac HTTP Fetcher is a set of classes to simplify http ope
 
 == When would you use the fetcher? ==
 
-  * When you just want a result from an http operation
+  * When you just want a result from one or more requests without writing much networking code
   * When you want the "standard" behavior for connections, such as redirection handling
   * When you want automatic retry on failures
   * When you want to avoid cookie collisions with Safari and other applications
+  * When you may be requesting the same resource repeatedly, and want to minimize network traffic
+  * When you want a convenient log of http requests and responses
   * When you need to set a credential for the http operation
 
 = Using the Fetcher =
