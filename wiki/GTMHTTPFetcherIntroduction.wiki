@@ -263,3 +263,9 @@ for the latest run of the application; the symlink is called
 For better viewing of XML logs, use Camino or Firefox rather than Safari.
 
 Projects may define `STRIP_GTM_FETCH_LOGGING` to remove logging code.
+
+= Questions and Comments =
+
+Additional documentation is available in the header files.
+
+If you have any questions or comments about the library or this documentation, please join the [http://groups.google.com/group/google-toolbox-for-mac discussion group].
