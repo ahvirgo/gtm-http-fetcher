@@ -19,6 +19,20 @@ The Google Toolbox for Mac HTTP Fetcher is a set of classes to simplify http ope
 
 = Using the Fetcher =
 
+== Adding the Fetcher to Your Project ==
+
+Check out the "top-of-trunk" fetcher sources with a Mac terminal window and the command on the [http://code.google.com/p/gtm-http-fetcher/source/checkout source checkout page].
+
+Only the `GTMHTTPFetcher.h/m` source files are required. The Logging class file is optional but useful for all applications. If your application will make a series of related fetches, the Service and History classes will likely be useful.
+
+|| *Source files* || *Purpose* ||
+|| GTMHTTPFetcher.h/m || required ||
+|| GTMHTTPFetcherLogging.h/m || http logging (often helpful) ||
+|| GTMHTTPFetcherService.h/m, GTMHTTPFetchHistory.h/m || history across fetches ||
+|| GTMMIMEDocument.h/m, GTMGatherInputStream.h/m || multipart MIME uploads ||
+|| GTMHTTPUploadFetcher.h/m || [http://code.google.com/apis/gdata/docs/resumable_upload.html resumable-uploads] ||
+
+
 == Usage ==
 
 === Fetching a Request ===
