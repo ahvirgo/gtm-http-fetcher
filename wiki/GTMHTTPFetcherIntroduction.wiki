@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary Introduction to using the GTM HTTP Fetcher classes.
 #labels Featured
 
 <wiki:toc max_depth="3" />
