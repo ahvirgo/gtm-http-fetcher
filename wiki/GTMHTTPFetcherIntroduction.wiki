@@ -39,7 +39,7 @@ Only the `GTMHTTPFetcher.h/m` source files are required. The Logging class file 
 
 Because the fetcher is implemented as a wrapper on NSURLConnection, it is asynchronous.
 
-At its most basic, the fetcher can be used by adding GTMHTTPFetcher.h/m to your project, and fetching a URL like this:
+The fetcher can be used most simply by adding GTMHTTPFetcher.h/m to your project, and fetching a URL like this:
 
 {{{
   #import "GTMHTTPFetcher.h"
@@ -53,9 +53,9 @@ At its most basic, the fetcher can be used by adding GTMHTTPFetcher.h/m to your 
 
 Each fetcher object is good for "one shot"; do not reuse an instance for a second fetch.
 
-The fetcher may be created auto-released (as shown above with `+fetcherWithRequest:`) so it will release itself after the fetch completion callback has been invoked.  The fetcher is implicitly retained as long as a connection is pending.
+The fetcher may be created auto-released (as shown above with `+fetcherWithRequest:`) so it will release itself after the fetch completion callback has been invoked.  The fetcher retains itself implicitly as long as a connection is pending.
 
-But if you may need to cancel the fetcher prior to completion, allocate the fetcher with `initWithRequest:` and have the delegate release the fetcher in the callbacks.
+But if you may need to cancel the fetcher prior to completion, allocate the fetcher with `initWithRequest:` and have the delegate release the fetcher in the callback.
 
 Upload data may be optionally specified with the fetcher's `postData` and `postStream` properties.
 
@@ -66,7 +66,7 @@ The callback looks like
     // failed; either an NSURLConnection error occurred, or the server returned
     // a status value of at least 300
     //
-    // the domain string for server status errors is kGTMHTTPFetcherStatusDomain
+    // the NSError domain string for server status errors is kGTMHTTPFetcherStatusDomain
     int status = [error code];
   } else {
     // fetch succeeded
@@ -107,10 +107,10 @@ By default, GTMHTTPFetcher uses a mutable array held statically to track cookies
 To rely instead on WebKit's global NSHTTPCookieStorage, call setCookieStorageMethod: with kGTMHTTPFetcherCookieStorageMethodSystemDefault.
 
 If the fetcher is created from a GTMHTTPFetcherService object
-then the cookie storage mechanism is set to use the cookie storage in the
+then the fetcher is set to use the cookie storage in the
 service object rather than the application static storage. Each fetcher service object instance has its own "cookie jar".
 
-=== Monitoring received data ===
+=== Monitoring Received Data ===
 
 An optional received data selector can be set as the `receivedDataSelector` property. The selector should have the signature
 
@@ -143,7 +143,7 @@ next attempt to fetch.
 The fetcher can optionally create a timer and reattempt certain kinds of
 fetch failures (status codes 408, request timeout; 503, service unavailable;
 504, gateway timeout; networking error NSURLErrorTimedOut.)  The user may set a retry selector to
-customize the type of errors which will be retried.
+customize the errors which will be retried.
 
 Retries are done in an exponential-backoff fashion (that is, after 1 second,
 2, 4, 8, and so on, with a bit of randomness added to the initial interval.)
@@ -191,15 +191,15 @@ user's method may look something like this:
 }
 }}}
 
-=== Fetching for Periodic Checks ===
+=== Avoiding Duplicate Responses ===
 
-The fetcher object can track ETag headers from responses and
+The fetcher can track ETag headers from responses for each requested URL and
 provide an "If-None-Match" header. This allows the server to save
 bandwidth by providing a status message instead of repeated response
 data.
 
-To get this behavior, create the fetcher from an GTMHTTPFetcherService object
-and look for a fetch callback error with code 304
+To get this behavior, create the fetcher from an GTMHTTPFetcherService object,
+and in the fetch callback look for an error with code 304
 (kGTMHTTPFetcherStatusNotModified) like this:
 {{{
 - (void)myFetcher:(GTMHTTPFetcher *)fetcher finishedWithData:(NSData *)data error:(NSError *)error {
@@ -209,6 +209,16 @@ and look for a fetch callback error with code 304
      // handle other server status code
    }
 }
+}}}
+
+The fetcher service object can optionally cache the ETagged responses in memory as well, so later fetchers will return the response data from the cache instead of the 304 status.
+{{{
+myFetcherService.shouldCacheETaggedData = YES;
+}}}
+
+The default cache size is 1 MB on iOS, 15 MB on Mac OS X. It can be set in the fetch history object:
+{{{
+myFetcherService.fetchHistory. = YES;
 }}}
 
 === Uploading Multipart MIME Documents ===
