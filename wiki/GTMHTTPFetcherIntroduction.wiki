@@ -218,7 +218,7 @@ myFetcherService.shouldCacheETaggedData = YES;
 
 The default cache size is 1 MB on iOS, 15 MB on Mac OS X. It can be set in the fetch history object:
 {{{
-myFetcherService.fetchHistory. = YES;
+myFetcherService.fetchHistory.memoryCapacity = 1000000;
 }}}
 
 === Uploading Multipart MIME Documents ===
