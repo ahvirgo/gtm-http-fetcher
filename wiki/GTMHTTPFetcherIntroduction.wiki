@@ -124,7 +124,7 @@ If supplied by the server, the anticipated total download size is available as`[
 
 === Notifications for the Network Activity Indicator ===
 
-The fetcher posts notifications `kGTMHTTPFetcherStartedNotification` and `kGTMHTTPFetcherStoppedNotification` to indicate when its network activity has started and stopped. A started notification is always balanced by a single stopped notification from the same fetcher instance. Your application can listen for those notifications in its code to start and stop the network activity indicator.
+The fetcher posts notifications `kGTMHTTPFetcherStartedNotification` and `kGTMHTTPFetcherStoppedNotification` to indicate when its network activity has started and stopped. A started notification is always balanced by a single stopped notification from the same fetcher instance. Your application can observe those notifications in its code to start and stop the network activity indicator.
 
 When the fetcher is paused between retry attempts, it posts `kGTMHTTPFetcherRetryDelayStartedNotification` and `kGTMHTTPFetcherRetryDelayStoppedNotification` notifications. The retry delay periods are between network activity, not during it.
 
