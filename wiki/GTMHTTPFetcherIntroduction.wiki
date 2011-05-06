@@ -98,6 +98,12 @@ The callback may also be supplied as an Objective-C block:
 
 Other fetcher delegate methods also have block versions.
 
+=== Passing Values to Callbacks ===
+
+The fetcher provides the method `setProperty:forKey:` and the property `userData` for passing values to the callbacks.
+
+The fetch request is available in the `mutableRequest` property.
+
 === Cookies ===
 
 There are three supported mechanisms for remembering cookies between fetches.
