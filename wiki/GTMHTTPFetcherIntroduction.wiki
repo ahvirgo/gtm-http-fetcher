@@ -99,6 +99,14 @@ The callback may also be supplied as an Objective-C block:
 
 Other fetcher delegate methods also have block versions.
 
+=== Background Fetches in iOS Applications ===
+
+On iOS 4 and later, the fetch may optionally continue while the app is sent to the background by the user. The fetch continues until it finishes, or until it is stopped by OS expiration of background execution.
+
+To enable background fetches, set the `shouldFetchInBackground` property of the fetcher to YES.
+
+Background fetches are always enabled in Mac OS X; the property is ignored.
+
 === Passing Values to Callbacks ===
 
 The fetcher provides the method `setProperty:forKey:` and the property `userData` for passing values to the callbacks.
