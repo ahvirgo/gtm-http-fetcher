@@ -312,9 +312,7 @@ useful for copying and pasting into bug reports.
 A symlink is created in the logs folder to simplify finding the html file
 for the latest run of the application; the symlink is called
 
-  `AppName_http_log_newest.html`
-
-For better viewing of XML logs, use Camino or Firefox rather than Safari.
+  `AppName_log_newest.html`
 
 Projects may define `STRIP_GTM_FETCH_LOGGING` to remove logging code, or may just omit the `GTMHTTPFetcherLogging` source files from release builds.
 
