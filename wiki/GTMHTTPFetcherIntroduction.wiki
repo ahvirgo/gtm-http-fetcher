@@ -104,6 +104,14 @@ The callback may also be supplied as an Objective-C block:
 
 Other fetcher delegate methods also have block versions.
 
+=== Fetching from Secondary Threads ===
+
+The fetcher, like NSURLConnection upon which it is built and like other Cocoa classes with callbacks, executes its callbacks when the thread's run loop is running.
+
+Since threads other than the main thread do not by default have a run loop, it is up to the application to create and run one for secondary threads in order to receive callbacks. See Apple's documentation for NSRunLoop for details on creating and running a run loop.
+
+As the fetcher is inherently asynchronous, applications using the fetcher should not create additional threads in order to get asynchronous http networking behavior.
+
 === Background Fetches in iOS Applications ===
 
 On iOS 4 and later, the fetch may optionally continue while the app is sent to the background by the user. The fetch continues until it finishes, or until it is stopped by OS expiration of background execution.
