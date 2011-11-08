@@ -16,7 +16,8 @@
   // The first part will be a simple string
   NSDictionary *headers = [NSDictionary dictionaryWithObject:@"text/plain"
                                                       forKey:@"Content-Type"];
-  NSData *body = [@"Apparently there is nothing that cannot happen today" dataUsingEncoding:NSUTF8StringEncoding];
+  NSString *str = @"Apparently there is nothing that cannot happen today";
+  NSData *body = [str dataUsingEncoding:NSUTF8StringEncoding];
   [doc addPartWithHeaders:headers
                      body:body];
 
@@ -26,16 +27,17 @@
   NSString *mimeType = @"image/jpeg"; // We will fall back on image/jpeg as a default
   
   // Example of finding a file MIME type dynamically from its file extension
-  NSString *imageExtn = [imageFilePath pathExtension];
-  CFStringRef fileUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (CFStringRef)imageExtn, NULL);
-  if (fileUTI) {
-    CFStringRef mimeTypeCF = UTTypeCopyPreferredTagWithClass (fileUTI, kUTTagClassMIMEType);
-    if (mimeTypeCF) {
-      mimeType = [NSString stringWithString:(NSString *)mimeTypeCF];
-      CFRelease(mimeTypeCF);
-    }
-    CFRelease(fileUTI);
-  }
+  //
+  // NSString *imageExtn = [imageFilePath pathExtension];
+  // CFStringRef fileUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (CFStringRef)imageExtn, NULL);
+  // if (fileUTI) {
+  //   CFStringRef mimeTypeCF = UTTypeCopyPreferredTagWithClass (fileUTI, kUTTagClassMIMEType);
+  //   if (mimeTypeCF) {
+  //     mimeType = [NSString stringWithString:(NSString *)mimeTypeCF];
+  //     CFRelease(mimeTypeCF);
+  //   }
+  //   CFRelease(fileUTI);
+  // }
   
   headers = [NSDictionary dictionaryWithObjectsAndKeys:
              mimeType, @"Content-Type",
