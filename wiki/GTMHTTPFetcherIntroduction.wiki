@@ -89,6 +89,8 @@ settingsFetcher:finishedWithData:error:
 
 The delegate is retained by the fetcher until the fetch has completed or has been canceled.
 
+*Note:* Because the fetcher retains the delegate until the fetch has completed or has been cancelled, if a selector callback is used, the delegate will not be deallocated while the fetch is in progress. Invoking the fetcher's `stopFetching` method in the delegate's `dealloc` is therefore not useful.
+
 === Blocks-style Callback ===
 
 The callback may also be supplied as an Objective-C block:
