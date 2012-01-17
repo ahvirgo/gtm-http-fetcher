@@ -304,7 +304,7 @@ All traffic using GTMHTTPFetcher can be easily logged.  Call
 {{{
   [GTMHTTPFetcher setLoggingEnabled:YES];
 }}}
-to begin generating log files.
+to begin generating log files. The project building the fetcher class must also include `GTMHTTPFetcherLogging.h` and `.m`.
 
 Log files are put into a folder on the desktop called `GTMHTTPDebugLogs`
 unless another directory is specified with `+setLoggingDirectory`. Each request and response log is also available after the fetch completes in the fetcher's `log` property; this makes viewing a fetcher's log convenient during debugging.
