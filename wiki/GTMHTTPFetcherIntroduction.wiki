@@ -313,6 +313,10 @@ In the iOS simulator, the default logs location is the user's home
 directory in ~/Library/Application Support.  On the device, the
 default logs location is the application's documents directory on the device.
 
+*Tip*: Search the Xcode console for the message “GTMHTTPFetcher logging to” followed by the path of the logs folder. Copy the path, including the quotation marks, and open it from the Mac’s terminal window, like
+{{{
+  open "/Users/username/Library/Application Support/iPhone Simulator/6.1/Applications/C2D1B09D-2BF7-4FC9-B4F6-BDB617DE76D5/GTMHTTPDebugLogs"
+}}}
 *Tip*: Use the Finder's "Sort By Date" to find the most recent logs.
 
 Each run of an application gets a separate set of log files.  An html
