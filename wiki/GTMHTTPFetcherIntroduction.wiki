@@ -306,7 +306,7 @@ All traffic using GTMHTTPFetcher can be easily logged.  Call
 }}}
 to begin generating log files. The project building the fetcher class must also include `GTMHTTPFetcherLogging.h` and `.m`.
 
-=== Log Files ===
+=== Finding the Log Files ===
 
 For Mac OS X applications, log files are put into a folder on the desktop called `GTMHTTPDebugLogs`. 
 
@@ -320,10 +320,12 @@ default logs location is the application's documents directory on the device.
 }}}
 *Tip*: Use the Finder's "Sort By Date" to find the most recent logs.
 
-Each run of an application gets a separate set of log files.  For each run, an html
-file is generated to simplify browsing the run's http requests and responses.
+Each run of an application generates a separate log.  For each run, an html
+file is created to simplify browsing the run's http requests and responses.
 
 To view the most recently saved logs, use a web browser to open the symlink named MyAppName_log_newest.html (for whatever your application's name is) in the logging directory.
+
+*Tip*: Set the fetcher's `comment` property or call `setCommentWithFormat:` before beginning a fetch to assign a short description for the request's log entry.
 
 Each request's log is also available via the fetcher `log` property when the fetcher completes; this makes viewing a fetcher's log convenient during debugging.
 
