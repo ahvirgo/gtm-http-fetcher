@@ -306,31 +306,30 @@ All traffic using GTMHTTPFetcher can be easily logged.  Call
 }}}
 to begin generating log files. The project building the fetcher class must also include `GTMHTTPFetcherLogging.h` and `.m`.
 
-Log files are put into a folder on the desktop called `GTMHTTPDebugLogs`
-unless another directory is specified with `+setLoggingDirectory`. Each request and response log is also available after the fetch completes in the fetcher's `log` property; this makes viewing a fetcher's log convenient during debugging.
+=== Log Files ===
 
-In the iOS simulator, the default logs location is the user's home
+For Mac OS X applications, log files are put into a folder on the desktop called `GTMHTTPDebugLogs`. 
+
+In the iOS simulator, the default logs location is the project derived data
 directory in ~/Library/Application Support.  On the device, the
 default logs location is the application's documents directory on the device.
 
-*Tip*: Search the Xcode console for the message “GTMHTTPFetcher logging to” followed by the path of the logs folder. Copy the path, including the quotation marks, and open it from the Mac’s terminal window, like
+*Tip*: Search the Xcode console for the message *GTMHTTPFetcher logging to* followed by the path of the logs folder. Copy the path, including the quotation marks, and open it from the Mac’s terminal window, like
 {{{
   open "/Users/username/Library/Application Support/iPhone Simulator/6.1/Applications/C2D1B09D-2BF7-4FC9-B4F6-BDB617DE76D5/GTMHTTPDebugLogs"
 }}}
 *Tip*: Use the Finder's "Sort By Date" to find the most recent logs.
 
-Each run of an application gets a separate set of log files.  An html
-file is generated to simplify browsing the run's http transactions.
-The html file includes Javascript links for inline viewing of uploaded
-and downloaded data, and links to plain-text versions of each request/response
-useful for copying and pasting into bug reports.
+Each run of an application gets a separate set of log files.  For each run, an html
+file is generated to simplify browsing the run's http requests and responses.
 
-A symlink is created in the logs folder to simplify finding the html file
-for the latest run of the application; the symlink is called
+To view the most recently saved logs, use a web browser to open the symlink named MyAppName_log_newest.html (for whatever your application's name is) in the logging directory.
 
-  `AppName_log_newest.html`
+Each request's log is also available via the fetcher `log` property when the fetcher completes; this makes viewing a fetcher's log convenient during debugging.
 
-Projects may define `STRIP_GTM_FETCH_LOGGING` to remove logging code, or may just omit the `GTMHTTPFetcherLogging` source files from release builds.
+*iOS Tip*: The library includes an iOS view controller, `GTMHTTPFetcherLogViewController`, for browsing the http logs on the device.
+
+*iOS Note*: Logging support is stripped out in non-DEBUG builds by default. This can be overridden by defining DEBUG=1 for the project, or by explicitly defining STRIP_GTM_FETCH_LOGGING=0 for the project.
 
 = Questions and Comments =
 
