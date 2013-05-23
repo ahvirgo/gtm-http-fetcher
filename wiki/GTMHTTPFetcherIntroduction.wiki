@@ -108,9 +108,28 @@ Other fetcher delegate methods also have block versions.
 
 === Fetching from Secondary Threads ===
 
-The fetcher, like NSURLConnection upon which it is built and like other Cocoa classes with callbacks, executes its callbacks when the thread's run loop is running.
+The fetcher, like NSURLConnection upon which it is built and like other Cocoa classes with callbacks, executes its callbacks when the thread's run loop is running. A fetch typically should be started on a thread with a run loop, which most often is the main thread.
 
-Since threads other than the main thread do not by default have a run loop, it is up to the application to create and run one for secondary threads in order to receive callbacks. See Apple's documentation for NSRunLoop for details on creating and running a run loop.
+As an alternative, starting with iOS 6 and Mac OS X 10.7, applications may use an operation queue for
+callbacks, avoiding the requirement for a run loop. For example, the callback may be run on a background queue's thread:
+{{{
+fetcher.delegateQueue = [[[NSOperationQueue alloc] init] autorelease];
+}}}
+The main thread can also be used to run the callback:
+{{{
+fetcher.delegateQueue = [NSOperationQueue mainQueue];
+}}}
+The application may re-dispatch from the callbacks and notifications to
+the application's preferred dispatch queue:
+{{{
+[myFetcher beginFetchWithCompletionHandler:^(NSData *retrievedData, NSError *error) {
+  if (error == nil) {
+    dispatch_async(myDispatchQueue, ^{
+      ...
+   });
+  }
+}];
+}}}
 
 As the fetcher is inherently asynchronous, applications using the fetcher should not create additional threads in order to get asynchronous http networking behavior.
 
